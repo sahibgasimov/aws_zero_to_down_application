@@ -8,12 +8,13 @@
 #     terraform version used wget https://releases.hashicorp.com/terraform/0.12.1/terraform_0.12.1_linux_amd64.zip
 #
 # Made by Sahib Gasimov 01-August-2021
-#-----------------------------------------------------------
+#------------------Provider-----------------------------------------
 
 provider "aws" {
   region = "us-east-1"
 }
-# ec2 instance-ami for web server
+##------------------ EC2 for WebServer-----------------------------------------
+
 data "aws_availability_zones" "available" {}
 output "AZ" {
   value = data.aws_availability_zones.available.names
@@ -26,7 +27,7 @@ data "aws_ami" "latest_amazon_linux" {
     values = ["amzn2-ami-hvm-*-x86_64-gp2"]
   }
 }
-#------------------------------------------------
+#-----------------SecGroup-------------------------------
 #sec group 
 resource "aws_security_group" "web" {
   name = "Dynamic Security Group"
@@ -63,7 +64,7 @@ resource "aws_launch_configuration" "web" {
     create_before_destroy = true #made for hig availability
   }
 }
-#---------------------------------------------------
+#---------------AutoScaling------------------------------------
 # auto-scaling group
 resource "aws_autoscaling_group" "web" {
   name              = "ASG-${aws_launch_configuration.web.name}" #name depends on launch conf name so it will be ASG- and any new name from launch config
@@ -91,7 +92,7 @@ resource "aws_autoscaling_group" "web" {
     create_before_destroy = true
   }
 }
-# load balancer 
+# ----------------LoadBalancer----------------------------------- 
 
 resource "aws_elb" "web" {
   name               = "WebServer-HA-ELB"
@@ -118,12 +119,8 @@ resource "aws_default_subnet" "default_az1" {
 }
 resource "aws_default_subnet" "default_az2" {
   availability_zone = data.aws_availability_zones.available.names[1]
-}
-output "elb" {
-  value = aws_elb.web.dns_name
-}
 
-#-----------------------------------------------------
+#--------------------ROUTE53---------------------------------
 
 resource "aws_route53_record" "blog" {
 zone_id = "Z0909795NKPTIPFAGOKO"
@@ -137,3 +134,14 @@ zone_id = "Z0909795NKPTIPFAGOKO"
     evaluate_target_health = true
   }
 }
+
+ #------------------OUTPUTS-------------------------------
+  
+  output "elb" {
+  value = aws_elb.web.dns_name
+}
+
+output "website_name" {
+  value = aws_route53_record.blog.name
+}
+  
