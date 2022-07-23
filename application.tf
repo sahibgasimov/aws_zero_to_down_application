@@ -119,7 +119,7 @@ resource "aws_default_subnet" "default_az1" {
 }
 resource "aws_default_subnet" "default_az2" {
   availability_zone = data.aws_availability_zones.available.names[1]
-
+}
 #--------------------ROUTE53---------------------------------
 
 resource "aws_route53_record" "blog" {
